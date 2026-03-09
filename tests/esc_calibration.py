@@ -1,15 +1,18 @@
-#!/usr/bin/python
-
-SERVO_CHANNEL = 0
+SERVO_CHANNEL = 3
 PWM_FREQ = 50
 I2C_ADDR = 0x40
 
-STEERING_PLUS_MINUS = 300
-STEERING_CENTER = 1530
+ZERO_POINT = 1500
+MAX_POINT = 2000
+BREAKING_POINT = 1100
+REVERSE_POINT = 1000
+
+
+#!/usr/bin/python
 
 import time
 import math
-import smbus
+import smbus2
 
 # ============================================================================
 # Raspi PCA9685 16-Channel PWM Servo Driver
@@ -33,26 +36,26 @@ class PCA9685:
   __ALLLED_OFF_H       = 0xFD
 
   def __init__(self, address=0x40, debug=False):
-    self.bus = smbus.SMBus(1)
+    self.bus = smbus2.SMBus(1)
     self.address = address
     self.debug = debug
     if (self.debug):
       print("Reseting PCA9685")
     self.write(self.__MODE1, 0x00)
-
+	
   def write(self, reg, value):
     "Writes an 8-bit value to the specified register/address"
     self.bus.write_byte_data(self.address, reg, value)
     if (self.debug):
       print("I2C: Write 0x%02X to register 0x%02X" % (value, reg))
-
+	  
   def read(self, reg):
     "Read an unsigned byte from the I2C device"
     result = self.bus.read_byte_data(self.address, reg)
     if (self.debug):
       print("I2C: Device 0x%02X returned 0x%02X from reg 0x%02X" % (self.address, result & 0xFF, reg))
     return result
-
+	
   def setPWMFreq(self, freq):
     "Sets the PWM frequency"
     prescaleval = 25000000.0    # 25MHz
@@ -82,50 +85,37 @@ class PCA9685:
     self.write(self.__LED0_OFF_H+4*channel, off >> 8)
     if (self.debug):
       print("channel: %d  LED_ON: %d LED_OFF: %d" % (channel,on,off))
-
+	  
   def setServoPulse(self, channel, pulse):
     "Sets the Servo Pulse,The PWM frequency must be 50HZ"
     pulse = pulse*4096/20000        #PWM frequency is 50HZ,the period is 20000us
     self.setPWM(channel, 0, int(pulse))
 
 if __name__=='__main__':
-
+ 
   pwm = PCA9685(I2C_ADDR, debug=False)
   pwm.setPWMFreq(PWM_FREQ)
-  v=STEERING_CENTER
-  while True:
-   # setServoPulse(2,2500)
-    print("Turn right")
-    while v<STEERING_CENTER+STEERING_PLUS_MINUS:
-      v+=10
-      print("Pulse %d" % v)
-      pwm.setServoPulse(SERVO_CHANNEL,v)
-      time.sleep(0.01)
+  pwm.setServoPulse(SERVO_CHANNEL, ZERO_POINT)
+  print("MSC at Zero point")
+  for i in range(5,-1,-1):
+      print(i)
+      time.sleep(1)
+
+  pwm.setServoPulse(SERVO_CHANNEL, MAX_POINT)
+  print("MSC at Max fwd point")
+  for i in range(5,-1,-1):
+      print(i)
+      time.sleep(1)
+
+  pwm.setServoPulse(SERVO_CHANNEL, REVERSE_POINT)
+  print("MSC at Max reverse point")
+  for i in range(5,-1,-1):
+      print(i)
+      time.sleep(1)
+
+  pwm.setServoPulse(SERVO_CHANNEL, ZERO_POINT)
+  print("MSC at Zero point")
+  
+  print("Done.")
 
 
-    print("Back to center")
-    while v>STEERING_CENTER-100:
-      v-=10
-      print("Pulse %d" % v)
-      pwm.setServoPulse(SERVO_CHANNEL,v)
-      time.sleep(0.01)
-
-    time.sleep(5)
-
-    print("Turn left")
-    while v>STEERING_CENTER-STEERING_PLUS_MINUS:
-      v-=10
-      print("Pulse %d" % v)
-      pwm.setServoPulse(SERVO_CHANNEL,v)
-      time.sleep(0.01)
-
-
-
-    print("Turn back to central")
-    while v<STEERING_CENTER+100:
-      v+=10
-      print("Pulse %d" % v)
-      pwm.setServoPulse(SERVO_CHANNEL,v)
-      time.sleep(0.01)
-
-    time.sleep(5)

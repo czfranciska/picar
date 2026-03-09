@@ -27,7 +27,7 @@ import threading
 import time
 from typing import Optional, Tuple
 import math
-import smbus
+import smbus2
 import websockets
 
 # ============================================================================
@@ -52,7 +52,7 @@ class PCA9685:
   __ALLLED_OFF_H       = 0xFD
 
   def __init__(self, address=0x40, debug=False):
-    self.bus = smbus.SMBus(1)
+    self.bus = smbus2.SMBus(1)
     self.address = address
     self.debug = debug
     self.pwrange = {}
