@@ -12,7 +12,7 @@ REVERSE_POINT = 1000
 
 import time
 import math
-import smbus
+import smbus2
 
 # ============================================================================
 # Raspi PCA9685 16-Channel PWM Servo Driver
@@ -36,7 +36,7 @@ class PCA9685:
   __ALLLED_OFF_H       = 0xFD
 
   def __init__(self, address=0x40, debug=False):
-    self.bus = smbus.SMBus(1)
+    self.bus = smbus2.SMBus(1)
     self.address = address
     self.debug = debug
     if (self.debug):
@@ -97,21 +97,31 @@ if __name__=='__main__':
   pwm.setPWMFreq(PWM_FREQ)
   pwm.setServoPulse(SERVO_CHANNEL, ZERO_POINT)
   print("MSC at Zero point")
-  for i in range(5,-1,-1):
-      print(i)
-      time.sleep(1)
+  time.sleep(2)
 
-  pwm.setServoPulse(SERVO_CHANNEL, MAX_POINT)
-  print("MSC at Max fwd point")
-  for i in range(5,-1,-1):
-      print(i)
-      time.sleep(1)
+  print("FWD Speed test")
+  for i in range(ZERO_POINT, ZERO_POINT+120, 5):
+    pwm.setServoPulse(SERVO_CHANNEL, i)
+    print(i)
+    time.sleep(0.2)
 
-  pwm.setServoPulse(SERVO_CHANNEL, REVERSE_POINT)
-  print("MSC at Max reverse point")
-  for i in range(5,-1,-1):
-      print(i)
-      time.sleep(1)
+  pwm.setServoPulse(SERVO_CHANNEL, ZERO_POINT)
+  print("MSC at Zero point")
+  
+  print("Breaking test")
+  for i in range(ZERO_POINT, ZERO_POINT-100, -5):
+    pwm.setServoPulse(SERVO_CHANNEL, i)
+    print(i)
+    time.sleep(0.2)
+
+  pwm.setServoPulse(SERVO_CHANNEL, ZERO_POINT)
+  print("MSC at Zero point")
+ 
+  print("Reverse test")
+  for i in range(ZERO_POINT, ZERO_POINT-160, -5):
+    pwm.setServoPulse(SERVO_CHANNEL, i)
+    print(i)
+    time.sleep(0.2)
 
   pwm.setServoPulse(SERVO_CHANNEL, ZERO_POINT)
   print("MSC at Zero point")

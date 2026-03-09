@@ -16,9 +16,9 @@ Update pip:
 python3 -m pip install --upgrade pip
 ```
 
-Install packages from **requirements.txt** -  e.g. under a venv
+Install packages from **pyproject.toml** -  e.g. under a venv
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ## Starting the server components
