@@ -31,7 +31,7 @@
 <div class="wrap">
   <h1>RC Car — WebRTC + Keyboard</h1>
   <div class="row">
-    <input id="wsurl" type="text" value="ws://192.168.0.101:8765" />
+    <input id="wsurl" type="text" value="ws://mono.inf.elte.hu:3333" />
     <button id="connect" class="primary">Connect</button>
     <button id="disconnect" class="secondary">Disconnect</button>
     <span class="status"><span id="dot" class="dot"></span><span id="stat">disconnected</span></span>
@@ -114,7 +114,11 @@
     if (ws && ws.readyState === WebSocket.OPEN) return;
     try { ws = new WebSocket(wsurl.value); } catch(e) { setStatus(false,'invalid URL'); return; }
     setStatus(null, 'connecting…');
-    ws.onopen = () => { setStatus(true,'connected'); startWebRTC(); };
+    ws.onopen = () => {
+      setStatus(true,'connected');
+      ws.send(JSON.stringify({role: 'client'}));
+      startWebRTC();
+    };
     ws.onclose = () => { setStatus(false,'disconnected'); if (pc) { pc.close(); pc=null; } };
     ws.onerror = () => { setStatus(false,'error'); };
     ws.onmessage = async (evt) => {
