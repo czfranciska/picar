@@ -30,19 +30,7 @@ First, use the prepared python3 venv:
 source .venv/bin/activate
 ```
 
-Launch the picar server in a screen:
-```bash
-screen -S server
-./start_cs.sh
-```
-Detach the screen by pressing Ctrl+a then d.
-
-Launch the bridge server that is the backend of the simple UI:
-```bash
-screen -S bridge
-./start_br.sh
-```
-Detach the screen by pressing Ctrl+a then d.
+--To be updated
 
 ## The experimental setup
 

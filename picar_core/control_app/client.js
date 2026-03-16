@@ -1,70 +1,3 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>RC Car — WebRTC + Keyboard</title>
-<style>
-  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#0b1020; color:#eaf2ff; display:grid; place-items:center; min-height:100vh;}
-  .wrap { width:min(1000px,95vw); padding:18px; border-radius:16px; background:linear-gradient(180deg,#121a36,#0e1429); border:1px solid rgba(255,255,255,.08); box-shadow:0 10px 35px rgba(0,0,0,.35);}
-  h1 { margin:0 0 10px; }
-  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
-  input[type=text]{ padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.15); background:#0c1228; color:#eaf2ff; width:360px;}
-  button{ padding:10px 14px; border-radius:10px; border:none; font-weight:700; cursor:pointer;}
-  .primary{ background:#7aa2ff; color:#081022;}
-  .secondary{ background:#1f2b56; color:#eaf2ff;}
-  .status{ margin-left:auto; display:flex; align-items:center; gap:8px; color:#a8b6d9;}
-  .dot{ width:10px; height:10px; border-radius:50%; background:#666;}
-  .ok{ background:#55d68a!important;}
-  .err{ background:#ff6b6b!important;}
-  video{ width:100%; max-height:60vh; background:#000; border-radius:12px; margin-top:12px;}
-  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;}
-  .card{ background:#0b1226; border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:10px;}
-  .bar{ height:18px; background:#0a0f20; border-radius:10px; position:relative; overflow:hidden;}
-  .fill{ position:absolute; top:0; bottom:0; left:50%; width:0%; background:linear-gradient(90deg,#6ea2ff,#8cc1ff);}
-  .neg .fill{ left:0; background:linear-gradient(90deg,#ff7a7a,#ffadad);}
-  .tiny{ color:#a8b6d9; font-size:12px;}
-  .num{ width:110px; padding:6px 8px; border-radius:8px; border:1px solid rgba(255,255,255,.15); background:#0c1228; color:#eaf2ff;}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>RC Car — WebRTC + Keyboard</h1>
-  <div class="row">
-    <input id="wsurl" type="text" value="ws://mono.inf.elte.hu:3333" />
-    <button id="connect" class="primary">Connect</button>
-    <button id="disconnect" class="secondary">Disconnect</button>
-    <span class="status"><span id="dot" class="dot"></span><span id="stat">disconnected</span></span>
-  </div>
-
-  <video id="video" autoplay playsinline muted></video>
-
-  <div class="grid">
-    <div class="card">
-      <div class="tiny">Steering</div>
-      <div id="sbar" class="bar"><div id="sfill" class="fill"></div></div>
-      <div class="tiny">Value: <span id="sval">0.00</span></div>
-    </div>
-    <div class="card">
-      <div class="tiny">Throttle</div>
-      <div id="tbar" class="bar"><div id="tfill" class="fill"></div></div>
-      <div class="tiny">Value: <span id="tval">0.00</span></div>
-    </div>
-  </div>
-
-  <div class="row" style="margin-top:10px;">
-    <span class="tiny">Step (steer)</span><input class="num" id="stepS" value="0.06" />
-    <span class="tiny">Step (throttle)</span><input class="num" id="stepT" value="0.06" />
-    <span class="tiny">Decay</span><input class="num" id="decay" value="0.00" />
-    <span class="tiny" style="margin-left:auto;">Rate: <span id="rate">0</span> Hz</span>
-  </div>
-
-  <div class="tiny" style="margin-top:10px;">
-    Keys: ← → / A D (steer), ↑ ↓ / W S (throttle), Space (neutral), C (center), X (stop), Q (disconnect)
-  </div>
-</div>
-
-<script>
 (() => {
   const vid = document.getElementById('video');
   const wsurl = document.getElementById('wsurl');
@@ -238,6 +171,3 @@ function tick(ts) {
 }
   requestAnimationFrame(tick);
 })();
-</script>
-</body>
-</html>

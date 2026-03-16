@@ -1,0 +1,20 @@
+body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#0b1020; color:#eaf2ff; display:grid; place-items:center; min-height:100vh;}
+.wrap { width:min(1000px,95vw); padding:18px; border-radius:16px; background:linear-gradient(180deg,#121a36,#0e1429); border:1px solid rgba(255,255,255,.08); box-shadow:0 10px 35px rgba(0,0,0,.35);}
+h1 { margin:0 0 10px; }
+.row { display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+input[type=text]{ padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.15); background:#0c1228; color:#eaf2ff; width:360px;}
+button{ padding:10px 14px; border-radius:10px; border:none; font-weight:700; cursor:pointer;}
+.primary{ background:#7aa2ff; color:#081022;}
+.secondary{ background:#1f2b56; color:#eaf2ff;}
+.status{ margin-left:auto; display:flex; align-items:center; gap:8px; color:#a8b6d9;}
+.dot{ width:10px; height:10px; border-radius:50%; background:#666;}
+.ok{ background:#55d68a!important;}
+.err{ background:#ff6b6b!important;}
+video{ width:100%; max-height:60vh; background:#000; border-radius:12px; margin-top:12px;}
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;}
+.card{ background:#0b1226; border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:10px;}
+.bar{ height:18px; background:#0a0f20; border-radius:10px; position:relative; overflow:hidden;}
+.fill{ position:absolute; top:0; bottom:0; left:50%; width:0%; background:linear-gradient(90deg,#6ea2ff,#8cc1ff);}
+.neg .fill{ left:0; background:linear-gradient(90deg,#ff7a7a,#ffadad);}
+.tiny{ color:#a8b6d9; font-size:12px;}
+.num{ width:110px; padding:6px 8px; border-radius:8px; border:1px solid rgba(255,255,255,.15); background:#0c1228; color:#eaf2ff;}
