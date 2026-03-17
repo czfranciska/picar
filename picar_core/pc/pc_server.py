@@ -59,7 +59,7 @@ async def main(config_path="pc_config.json"):
 def start():
     # Synchronous entry point for pyproject.toml scripts.
     import sys
-    cfg = sys.argv[1] if len(sys.argv) > 1 else "picar-core/pc/pc_config.json"
+    cfg = sys.argv[1] if len(sys.argv) > 1 else "picar_core/pc/pc_config.json"
     asyncio.run(main(cfg))
 
 if __name__ == "__main__":
