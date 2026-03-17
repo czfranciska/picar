@@ -280,7 +280,10 @@ def start():
     import sys
     import asyncio
     cfg = sys.argv[1] if len(sys.argv) > 1 else "picar_core/pi/pi_config.json"
-    asyncio.run(main(cfg))
+    try:
+        asyncio.run(main(cfg))
+    except KeyboardInterrupt:
+        print("\n[PICAR] Program stopped by user.")
 
 if __name__ == "__main__":
     start()

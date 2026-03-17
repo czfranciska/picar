@@ -16,6 +16,6 @@
     "esc_neutral_us": 1500,
     "esc_min_us": 1000,
     "esc_max_us": 2000,
-    "dry_run": true
+    "dry_run": false
   }
 }
