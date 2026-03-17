@@ -38,11 +38,29 @@ async def handler(websocket):
             print("[BACKEND] Client disconnected.")
 
 
-async def main():
-    print("[BACKEND] Starting signaling/relay server on port 3333")
-    async with websockets.serve(handler, "0.0.0.0", 3333):
+async def main(config_path="pc_config.json"):
+    try:
+        with open(config_path, "r") as f:
+            config = json.load(f)
+        print(f"[INFO] Loaded configuration from {config_path}")
+    except FileNotFoundError:
+        print(f"[ERROR] Could not find {config_path}. Using default 0.0.0.0:3333")
+        config = {"server": {"host": "0.0.0.0", "port": 3333}}
+
+    host = config.get("server", {}).get("host", "0.0.0.0")
+    port = config.get("server", {}).get("port", 3333)
+
+
+    print(f"[BACKEND] Starting signaling/relay server on ws://{host}:{port}")
+    async with websockets.serve(handler, host, port):
         await asyncio.Future()
 
 
+def start():
+    # Synchronous entry point for pyproject.toml scripts.
+    import sys
+    cfg = sys.argv[1] if len(sys.argv) > 1 else "pc_config.json"
+    asyncio.run(main(cfg))
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    start()

@@ -16,3 +16,7 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 include = ["picar_core*"]
+
+[project.scripts]
+pi-server = "picar_core.pi.pi_server:start"
+pc-server = "picar_core.pc.pc_server:start"

@@ -214,19 +214,29 @@ class WebRTCServerAV:
             cand.sdpMLineIndex = c.get("sdpMLineIndex")
             await self.pc.addIceCandidate(cand)
 
-async def main():
+async def main(config_path="picar_core/pi/pi_config.json"):
+    try:
+        with open(config_path, "r") as f:
+            config = json.load(f)
+        print(f"[INFO] Loaded configuration from {config_path}")
+    except FileNotFoundError:
+        print(f"[ERROR] Could not find {config_path}.")
+        return
+
+    driver_conf = config.get("driver", {})
+    camera_conf = config.get("camera", {})
+    backend_url = config.get("backend_url", "ws://mono.inf.elte.hu:3333")
     driver = ServoHatDriver(
-        steer_channel=0,
-        esc_channel=3,
-        steer_center_us=1530,
-        steer_range_us=300,
-        esc_neutral_us=1500,
-        esc_min_us=1000,
-        esc_max_us=2000
+        steer_channel=driver_conf.get("steer_channel", 0),
+        esc_channel=driver_conf.get("esc_channel", 3),
+        steer_center_us=driver_conf.get("steer_center_us", 1530),
+        steer_range_us=driver_conf.get("steer_range_us", 300),
+        esc_neutral_us=driver_conf.get("esc_neutral_us", 1500),
+        esc_min_us=driver_conf.get("esc_min_us", 1000),
+        esc_max_us=driver_conf.get("esc_max_us", 2000),
+        dry_run=driver_conf.get("dry_run", False)
     )
     driver.arm(2.0)
-
-    backend_url = "ws://mono.inf.elte.hu:3333"
 
     while True:
         try:
@@ -234,8 +244,14 @@ async def main():
                 await ws.send(json.dumps({"role": "car"}))
                 print(f"[PICAR] Connected to backend at {backend_url}")
 
-                rtc = WebRTCServerAV("/dev/video0", 320, 240, 20, "yuyv422", "stun:stun.l.google.com:19302")
-
+                rtc = WebRTCServerAV(
+                    camera_conf.get("device", "/dev/video0"),
+                    camera_conf.get("width", 320),
+                    camera_conf.get("height", 240),
+                    camera_conf.get("fps", 20),
+                    camera_conf.get("format", "yuyv422"),
+                    camera_conf.get("stun", "stun:stun.l.google.com:19302")
+                )
                 async for msg in ws:
                     try:
                         obj = json.loads(msg)
@@ -247,7 +263,7 @@ async def main():
                     if mtype == "control":
                         steer = float(obj.get("steer", 0.0))
                         throttle = float(obj.get("throttle", 0.0))
-                        #driver.set_steer_throttle(steer, throttle)
+                        driver.set_steer_throttle(steer, throttle)
                         print(f"[CONTROL] Received - Steer: {steer:.3f}, Throttle: {throttle:.3f}")
                     elif mtype == "webrtc_offer":
                         asyncio.create_task(rtc.handle_offer(ws, obj))
@@ -259,5 +275,12 @@ async def main():
             driver.neutral()
             await asyncio.sleep(5)
 
+def start():
+    # Synchronous entry point for pyproject.toml scripts.
+    import sys
+    import asyncio
+    cfg = sys.argv[1] if len(sys.argv) > 1 else "picar_core/pi/pi_config.json"
+    asyncio.run(main(cfg))
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    start()
