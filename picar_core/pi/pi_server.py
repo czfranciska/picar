@@ -234,7 +234,7 @@ async def main():
                 await ws.send(json.dumps({"role": "car"}))
                 print(f"[PICAR] Connected to backend at {backend_url}")
 
-                rtc = WebRTCServerAV("/dev/video0", 640, 480, 30, "yuyv422", "stun:stun.l.google.com:19302")
+                rtc = WebRTCServerAV("/dev/video0", 320, 240, 20, "yuyv422", "stun:stun.l.google.com:19302")
 
                 async for msg in ws:
                     try:
@@ -247,7 +247,8 @@ async def main():
                     if mtype == "control":
                         steer = float(obj.get("steer", 0.0))
                         throttle = float(obj.get("throttle", 0.0))
-                        driver.set_steer_throttle(steer, throttle)
+                        #driver.set_steer_throttle(steer, throttle)
+                        print(f"[CONTROL] Received - Steer: {steer:.3f}, Throttle: {throttle:.3f}")
                     elif mtype == "webrtc_offer":
                         asyncio.create_task(rtc.handle_offer(ws, obj))
                     elif mtype == "webrtc_ice":
