@@ -15,7 +15,7 @@ async def handler(websocket):
         return
 
     role = data.get("role")
-
+    # Only one car connection is allowed
     if role == "car":
         car_connection = websocket
         print("[BACKEND] Car connected.")
@@ -50,7 +50,7 @@ async def main(config_path="pc_config.json"):
     host = config.get("server", {}).get("host", "0.0.0.0")
     port = config.get("server", {}).get("port", 3333)
 
-
+    # Start the WebSocket server
     print(f"[BACKEND] Starting signaling/relay server on ws://{host}:{port}")
     async with websockets.serve(handler, host, port):
         await asyncio.Future()
