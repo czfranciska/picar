@@ -239,6 +239,14 @@ class WebRTCServerAV:
             cand.sdpMLineIndex = c.get("sdpMLineIndex")
             await self.pc.addIceCandidate(cand)
 
+async def failsafe_task(driver: OutputDriver, last_rx_ref: list, failsafe_s: float):
+    # Constantly sends a neutral signal if the last command was too long ago.
+    while True:
+        await asyncio.sleep(0.05)
+        # last_rx_ref[0] stores the timestamp of the last received command
+        if time.time() - last_rx_ref[0] > failsafe_s:
+            driver.neutral()
+
 
 async def main(config_path="picar_core/pi/pi_config.json"):
     # Load configuration from JSON file
@@ -254,6 +262,9 @@ async def main(config_path="picar_core/pi/pi_config.json"):
     camera_conf = config.get("camera", {})
     backend_url = config.get("backend_url", "ws://mono.inf.elte.hu:3333")
 
+    last_rx_ref = [time.time()]
+    failsafe_timeout = 0.5
+
     # Initialize the servo driver and arm the ESC.
     driver = ServoHatDriver(
         steer_channel=driver_conf.get("steer_channel", 0),
@@ -266,6 +277,8 @@ async def main(config_path="picar_core/pi/pi_config.json"):
         dry_run=driver_conf.get("dry_run", False)
     )
     driver.arm(2.0)
+
+    asyncio.create_task(failsafe_task(driver, last_rx_ref, failsafe_timeout))
 
     while True:
         try:
@@ -293,6 +306,8 @@ async def main(config_path="picar_core/pi/pi_config.json"):
                     mtype = obj.get("type")
                     # Handle control commands
                     if mtype == "control":
+                        last_rx_ref[0] = time.time()
+
                         steer = float(obj.get("steer", 0.0))
                         throttle = float(obj.get("throttle", 0.0))
                         driver.set_steer_throttle(steer, throttle)
@@ -308,7 +323,6 @@ async def main(config_path="picar_core/pi/pi_config.json"):
             driver.neutral()
             await asyncio.sleep(5)
 
-
 def start():
     # Synchronous entry point for pyproject.toml scripts.
     import sys
@@ -318,7 +332,6 @@ def start():
         asyncio.run(main(cfg))
     except KeyboardInterrupt:
         print("\n[PICAR] Program stopped by user.")
-
 
 if __name__ == "__main__":
     start()
