@@ -11,11 +11,11 @@
   "driver": {
     "steer_channel": 0,
     "esc_channel": 3,
-    "steer_center_us": 1530,
+    "steer_center_us": 1500,
     "steer_range_us": 300,
     "esc_neutral_us": 1500,
-    "esc_min_us": 1000,
-    "esc_max_us": 2000,
+    "esc_min_us": 1350,
+    "esc_max_us": 1600,
     "dry_run": false
   }
 }
