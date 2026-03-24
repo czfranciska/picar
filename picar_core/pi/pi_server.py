@@ -272,8 +272,8 @@ async def main(config_path="picar_core/pi/pi_config.json"):
         steer_center_us=driver_conf.get("steer_center_us", 1530),
         steer_range_us=driver_conf.get("steer_range_us", 300),
         esc_neutral_us=driver_conf.get("esc_neutral_us", 1500),
-        esc_min_us=driver_conf.get("esc_min_us", 1000),
-        esc_max_us=driver_conf.get("esc_max_us", 2000),
+        esc_min_us=driver_conf.get("esc_min_us", 1350),
+        esc_max_us=driver_conf.get("esc_max_us", 1600),
         dry_run=driver_conf.get("dry_run", False)
     )
     driver.arm(2.0)
@@ -310,6 +310,9 @@ async def main(config_path="picar_core/pi/pi_config.json"):
 
                         steer = float(obj.get("steer", 0.0))
                         throttle = float(obj.get("throttle", 0.0))
+                        if abs(steer) < 0.03: steer = 0.0
+                        if abs(throttle) < 0.02: throttle = 0.0
+
                         driver.set_steer_throttle(steer, throttle)
                         print(f"[CONTROL] Received - Steer: {steer:.3f}, Throttle: {throttle:.3f}")
                     # Handle WebRTC offers
