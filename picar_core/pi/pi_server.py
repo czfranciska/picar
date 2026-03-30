@@ -1,23 +1,3 @@
-#!/usr/bin/env python3
-"""
-RC Car UDP control server + TCP MJPEG-like stream (length-prefixed JPEG frames).
-
-CONTROL:
-  - UDP server receives steering/throttle commands (unchanged).
-VIDEO:
-  - TCP server sends a sequence of frames:
-        [4-byte big-endian length][JPEG bytes] repeated
-    One client at a time (additional connections wait until the current client disconnects).
-
-Usage (on the Pi):
-  sudo python3 rc_server.py --port 9999 \
-      --video-port 9998 --camera-index 0 --video-width 640 --video-height 480 --video-fps 20
-
-Dependencies on the Pi:
-  - adafruit-circuitpython-servokit (for PWM)
-  - opencv-python, numpy (for camera/encoding)
-"""
-
 import asyncio
 import json
 import time
@@ -243,12 +223,30 @@ async def failsafe_task(driver: OutputDriver, last_rx_ref: list, failsafe_s: flo
     # Constantly sends a neutral signal if the last command was too long ago.
     while True:
         await asyncio.sleep(0.05)
-        # last_rx_ref[0] stores the timestamp of the last received command
         if time.time() - last_rx_ref[0] > failsafe_s:
             driver.neutral()
 
 
-async def main(config_path="picar_core/pi/pi_config.json"):
+async def sensor_task(ws, sensors: list, interval_s: float = 1.0):
+    # Periodically reads all sensors and sends the data to the pc server
+    while True:
+        payload = {
+            "type": "sensor",
+            "data": {}
+        }
+        for sensor in sensors:
+            payload["data"][sensor.name] = sensor.read()
+
+        try:
+            await ws.send(json.dumps(payload))
+        except websockets.exceptions.ConnectionClosed:
+            break
+
+        await asyncio.sleep(interval_s)
+
+async def main(config_path="picar_core/pi/pi_config.json", active_sensors=None):
+    if active_sensors is None:
+        active_sensors = []
     # Load configuration from JSON file
     try:
         with open(config_path, "r") as f:
@@ -280,6 +278,9 @@ async def main(config_path="picar_core/pi/pi_config.json"):
 
     asyncio.create_task(failsafe_task(driver, last_rx_ref, failsafe_timeout))
 
+    for sensor in active_sensors:
+        sensor.setup()
+
     while True:
         try:
             # Connect to the backend WebSocket server
@@ -287,6 +288,8 @@ async def main(config_path="picar_core/pi/pi_config.json"):
                 # Identify as the car to the backend
                 await ws.send(json.dumps({"role": "car"}))
                 print(f"[PICAR] Connected to backend at {backend_url}")
+                # Start the sensor task to periodically send sensor data
+                asyncio.create_task(sensor_task(ws, active_sensors, interval_s=1.0))
                 # Initialize the WebRTC server
                 rtc = WebRTCServerAV(
                     camera_conf.get("device", "/dev/video0"),
@@ -330,11 +333,20 @@ def start():
     # Synchronous entry point for pyproject.toml scripts.
     import sys
     import asyncio
+    from picar_core.pi.sensor import CPUSensor
+
     cfg = sys.argv[1] if len(sys.argv) > 1 else "picar_core/pi/pi_config.json"
+
+    active_sensors = [CPUSensor(name="cpu_core")]
+
     try:
-        asyncio.run(main(cfg))
+        asyncio.run(main(cfg, active_sensors))
     except KeyboardInterrupt:
         print("\n[PICAR] Program stopped by user.")
+    finally:
+        print("\n[PICAR] Shutting down hardware...")
+        for sensor in active_sensors:
+            sensor.cleanup()
 
 if __name__ == "__main__":
     start()

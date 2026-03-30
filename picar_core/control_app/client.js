@@ -62,6 +62,10 @@
       } else if (msg.type === 'webrtc_ice' && pc) {
         const c = msg.candidate || {};
         try { await pc.addIceCandidate(c); } catch(e) {}
+      } else if (msg.type === 'sensor') {
+        if (msg.data && msg.data.cpu_core) {
+          document.getElementById('cpu_val').textContent = msg.data.cpu_core.usage_percent.toFixed(1);
+        }
       }
     };
   }
