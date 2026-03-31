@@ -5,7 +5,9 @@ from typing import Optional
 import math
 import smbus2
 import websockets
-
+import cv2
+import numpy as np
+from aiortc import VideoStreamTrack
 from aiortc import RTCPeerConnection, RTCSessionDescription, RTCConfiguration, RTCIceServer
 from aiortc.contrib.media import MediaPlayer
 from aiortc.sdp import candidate_from_sdp
@@ -142,6 +144,36 @@ class ServoHatDriver(OutputDriver):
             time.sleep(0.05)
         print("[INFO] Arming complete.")
 
+class LineFollowingTrack(VideoStreamTrack):
+    def __init__(self, track):
+        super().__init__()
+        self.track = track
+
+    async def recv(self):
+        frame = await self.track.recv()
+
+        img = frame.to_ndarray(format="bgr24")
+
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(gray, (5, 5), 0)
+        ret, thresh = cv2.threshold(blur, 60, 255, cv2.THRESH_BINARY_INV)
+
+        contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        if len(contours) > 0:
+            c = max(contours, key=cv2.contourArea)
+            M = cv2.moments(c)
+
+            if M["m00"] != 0:
+                cx = int(M["m10"] / M["m00"])
+                cy = int(M["m01"] / M["m00"])
+
+                cv2.circle(img, (cx, cy), 10, (0, 0, 255), -1)
+
+        new_frame = frame.from_ndarray(img, format="bgr24")
+        new_frame.pts = frame.pts
+        new_frame.time_base = frame.time_base
+        return new_frame
 
 class WebRTCServerAV:
     def __init__(self, device: str, w: int, h: int, fps: int, input_format: str, stun: Optional[str]):
@@ -191,7 +223,8 @@ class WebRTCServerAV:
         self.player = self._make_player()
         if not self.player.video:
             raise RuntimeError("Camera did not provide a video track")
-        self.pc.addTrack(self.player.video)
+        cv_track = LineFollowingTrack(self.player.video)
+        self.pc.addTrack(cv_track)
 
         @self.pc.on("icecandidate")
         async def on_icecandidate(candidate):
