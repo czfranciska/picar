@@ -167,11 +167,11 @@ class LineFollowingTrack(VideoStreamTrack):
             if M["m00"] != 0:
                 cx = int(M["m10"] / M["m00"])
                 cy = int(M["m01"] / M["m00"])
-                cv2.drawContours(img, [c], -1, (0, 255, 0), 3)
+                cv2.drawContours(img, [c], -1, (0, 255, 0), 1)
                 height, width, _ = img.shape
                 car_center_x = width // 2
                 car_bottom_y = height
-                cv2.line(img, (car_center_x, car_bottom_y), (cx, cy), (255, 0, 0), 3)
+                cv2.line(img, (car_center_x, car_bottom_y), (cx, cy), (255, 0, 0), 1)
 
         new_frame = frame.from_ndarray(img, format="bgr24")
         new_frame.pts = frame.pts
