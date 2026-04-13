@@ -1,9 +1,20 @@
 import asyncio
 import json
 import websockets
+from collections import defaultdict
 
 car_connection = None
 client_connections = set()
+subscriptions = defaultdict(set)
+
+async def update_car_subscriptions():
+    # When a client subscribes to a sensor, we need to inform the car of all currently requested sensors.
+    if car_connection:
+        all_requested = list(subscriptions.keys())
+        await car_connection.send(json.dumps({
+            "type": "subscribe_sensors",
+            "sensors": all_requested
+        }))
 
 async def handler(websocket):
     global car_connection
@@ -15,13 +26,26 @@ async def handler(websocket):
         return
 
     role = data.get("role")
-    # Only one car connection is allowed
     if role == "car":
         car_connection = websocket
         print("[BACKEND] Car connected.")
+        await update_car_subscriptions()
         try:
             async for message in websocket:
-                websockets.broadcast(client_connections, message)
+                try:
+                    msg_obj = json.loads(message)
+                    if msg_obj.get("type") == "sensor":
+                        # Selective forwarding, only send data to clients that subscribed to this sensor
+                        for sensor_name, sensor_data in msg_obj.get("data", {}).items():
+                            subscribers = subscriptions.get(sensor_name, [])
+                            if subscribers:
+                                payload = json.dumps({"type": "sensor", "data": {sensor_name: sensor_data}})
+                                websockets.broadcast(subscribers, payload)
+                    else:
+                        # Broadcast other types (like WebRTC signals) to all clients
+                        websockets.broadcast(client_connections, message)
+                except Exception:
+                    continue
         finally:
             car_connection = None
             print("[BACKEND] Car disconnected.")
@@ -31,10 +55,32 @@ async def handler(websocket):
         print("[BACKEND] Client connected.")
         try:
             async for message in websocket:
-                if car_connection:
-                    await car_connection.send(message)
+                try:
+                    msg_obj = json.loads(message)
+                    if msg_obj.get("type") == "subscribe_sensors":
+                        requested = msg_obj.get("sensors", [])
+                        # Clean up subscriptions for this client
+                        for s_set in subscriptions.values():
+                            s_set.discard(websocket)
+                        # Update subscriptions
+                        for s_name in requested:
+                            subscriptions[s_name].add(websocket)
+                        # Remove any sensors from the keyset that have no subscribers
+                        for s_name in list(subscriptions.keys()):
+                            if not subscriptions[s_name]:
+                                del subscriptions[s_name]
+
+                        await update_car_subscriptions()
+                    elif car_connection:
+                        await car_connection.send(message)
+                except Exception:
+                    continue
         finally:
             client_connections.remove(websocket)
+            # When a client disconnects, clear its subscriptions
+            for s_set in subscriptions.values():
+                s_set.discard(websocket)
+            await update_car_subscriptions()
             print("[BACKEND] Client disconnected.")
 
 

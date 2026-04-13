@@ -1,48 +1,58 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>RC Car — WebRTC + Keyboard</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>RC Car — WebRTC + Keyboard</title>
 
-<link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css"/>
 
 </head>
 <body>
 <div class="wrap">
-  <h1>RC Car — WebRTC + Keyboard</h1>
-  <div class="row">
-    <input id="wsurl" type="text" value="ws://mono.inf.elte.hu:3333" />
-    <button id="connect" class="primary">Connect</button>
-    <button id="disconnect" class="secondary">Disconnect</button>
-    <span class="status"><span id="dot" class="dot"></span><span id="stat">disconnected</span></span>
-  </div>
-
-  <video id="video" autoplay playsinline muted></video>
-
-  <div class="grid">
-    <div class="card">
-      <div class="tiny">Steering</div>
-      <div id="sbar" class="bar"><div id="sfill" class="fill"></div></div>
-      <div class="tiny">Value: <span id="sval">0.00</span></div>
+    <h1>RC Car — WebRTC + Keyboard</h1>
+    <div class="row">
+        <input id="wsurl" type="text" value="ws://mono.inf.elte.hu:3333"/>
+        <button id="connect" class="primary">Connect</button>
+        <button id="disconnect" class="secondary">Disconnect</button>
+        <span class="status"><span id="dot" class="dot"></span><span id="stat">disconnected</span></span>
     </div>
-    <div class="card">
-      <div class="tiny">Throttle</div>
-      <div id="tbar" class="bar"><div id="tfill" class="fill"></div></div>
-      <div class="tiny">Value: <span id="tval">0.00</span></div>
+
+    <video id="video" autoplay playsinline muted></video>
+
+    <div class="grid">
+        <div class="card">
+            <div class="tiny">Steering</div>
+            <div id="sbar" class="bar">
+                <div id="sfill" class="fill"></div>
+            </div>
+            <div class="tiny">Value: <span id="sval">0.00</span></div>
+        </div>
+        <div class="card">
+            <div class="tiny">Throttle</div>
+            <div id="tbar" class="bar">
+                <div id="tfill" class="fill"></div>
+            </div>
+            <div class="tiny">Value: <span id="tval">0.00</span></div>
+        </div>
+
+        <div class="card">
+            <div class="tiny">Active Sensors</div>
+            <div id="sensor_container">
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="row" style="margin-top:10px;">
-    <span class="tiny">Step (steer)</span><input class="num" id="stepS" value="0.06" />
-    <span class="tiny">Step (throttle)</span><input class="num" id="stepT" value="0.06" />
-    <span class="tiny">Decay</span><input class="num" id="decay" value="0.00" />
-    <span class="tiny" style="margin-left:auto;">Rate: <span id="rate">0</span> Hz</span>
-  </div>
+    <div class="row" style="margin-top:10px;">
+        <span class="tiny">Step (steer)</span><input class="num" id="stepS" value="0.06"/>
+        <span class="tiny">Step (throttle)</span><input class="num" id="stepT" value="0.06"/>
+        <span class="tiny">Decay</span><input class="num" id="decay" value="0.00"/>
+        <span class="tiny" style="margin-left:auto;">Rate: <span id="rate">0</span> Hz</span>
+    </div>
 
-  <div class="tiny" style="margin-top:10px;">
-    Keys: ← → / A D (steer), ↑ ↓ / W S (throttle), Space (neutral), C (center), X (stop), Q (disconnect)
-  </div>
+    <div class="tiny" style="margin-top:10px;">
+        Keys: ← → / A D (steer), ↑ ↓ / W S (throttle), Space (neutral), C (center), X (stop), Q (disconnect)
+    </div>
 </div>
 
 <script src="client.js"></script>
