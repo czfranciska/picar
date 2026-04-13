@@ -16,6 +16,16 @@
     "esc_neutral_us": 1500,
     "esc_min_us": 1350,
     "esc_max_us": 1600,
-    "dry_run": false
+    "dry_run": false,
+    "i2c_address": 64,
+    "frequency_hz": 50,
+    "arming_s": 2.0,
+    "failsafe_s": 0.5,
+    "failsafe_poll_interval_s": 0.05,
+    "steer_deadzone": 0.03,
+    "throttle_deadzone": 0.02
+  },
+  "sensors": {
+    "poll_interval_s": 1.0
   }
 }
