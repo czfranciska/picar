@@ -53,6 +53,11 @@ async def process_video(track, ws):
                     error = (target_x - car_center_x) / car_center_x
                     steer_value = error * 0.5  # Soften steering
                     throttle_value = 0.15
+            else:
+                # No line detected, stop the car
+                steer_value = 0.0
+                throttle_value = 0.0
+
 
             # 4. Send the control command to the backend
             '''
