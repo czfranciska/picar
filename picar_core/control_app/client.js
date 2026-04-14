@@ -272,6 +272,7 @@
             sendCount = 0;
             lastRate = ts;
         }
+        requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
 })();
