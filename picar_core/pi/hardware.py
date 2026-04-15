@@ -4,6 +4,7 @@ import smbus2
 
 # PCA9685 driver class for controlling the servo hat via I2C
 class PCA9685:
+    # Register addresses
     __SUBADR1 = 0x02
     __SUBADR2 = 0x03
     __SUBADR3 = 0x04
@@ -49,7 +50,7 @@ class PCA9685:
         time.sleep(0.005)
         self.write(self.__MODE1, oldmode | 0x80)
 
-    # Set the PWM on/off values for a given channel (0-15)
+    # Set the PWM on/off values for a given channel
     def setPWM(self, channel, on, off):
         self.write(self.__LED0_ON_L + 4 * channel, on & 0xFF)
         self.write(self.__LED0_ON_H + 4 * channel, on >> 8)
@@ -67,6 +68,7 @@ class PCA9685:
         pulse = pulse * 4096 / 20000
         self.setPWM(channel, 0, int(pulse))
 
+# Abstract interface for controlling the car's steering and throttle
 class OutputDriver:
     def set_steer_throttle(self, steer: float, throttle: float) -> None: ...
 
@@ -74,7 +76,7 @@ class OutputDriver:
 
     def neutral(self) -> None: ...
 
-
+# Concrete implementation of OutputDriver that uses PCA9685 to control the car
 class ServoHatDriver(OutputDriver):
     def __init__(self, steer_channel=0, esc_channel=3, i2c_address=0x40, frequency_hz=50,
                  steer_center_us=1500, steer_range_us=300, esc_neutral_us=1500,
@@ -88,6 +90,7 @@ class ServoHatDriver(OutputDriver):
         self.esc_min = esc_min_us
         self.esc_max = esc_max_us
 
+        # Initialize PCA9685 if not in dry run mode, otherwise set pwm to None
         if not self._dry:
             try:
                 self.pwm = PCA9685(i2c_address, debug=False)
@@ -103,10 +106,12 @@ class ServoHatDriver(OutputDriver):
     def _write_us(self, channel: int, us: int) -> None:
         if not self._dry: self.pwm.setServoPulse(channel, us)
 
+    # Convert normalized steer to microseconds pulse width for the servo
     def _steer_to_us(self, steer: float) -> int:
         steer = max(-1.0, min(1.0, steer))
         return int(round(self.steer_center + steer * self.steer_range))
 
+    # Convert normalized throttle to microseconds pulse width
     def _throttle_to_us(self, throttle: float) -> int:
         throttle = max(-1.0, min(1.0, throttle))
         if throttle >= 0:
@@ -118,6 +123,7 @@ class ServoHatDriver(OutputDriver):
         self._write_us(self.steer_ch, self._steer_to_us(steer))
         self._write_us(self.esc_ch, self._throttle_to_us(throttle))
 
+    # Send neutral signals to both steering and throttle channels to stop the car
     def neutral(self) -> None:
         self._write_us(self.steer_ch, self.steer_center)
         self._write_us(self.esc_ch, self.esc_neutral)

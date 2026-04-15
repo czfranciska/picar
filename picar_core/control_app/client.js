@@ -17,6 +17,12 @@
     const rateEl = document.getElementById('rate');
     const sensorContainer = document.getElementById('sensor_container');
 
+    wsurl.value = wsurl.value || APP_CONFIG.BACKEND_URL;
+
+    if (stepS) stepS.value = APP_CONFIG.DEFAULT_STEER_STEP;
+    if (stepT) stepT.value = APP_CONFIG.DEFAULT_THROTTLE_STEP;
+    if (decayIn) decayIn.value = APP_CONFIG.DEFAULT_DECAY;
+
     let ws = null,
         pc = null;
     let steer = 0.0,
@@ -178,13 +184,21 @@
                 for (const [sensorName, sensorData] of Object.entries(msg.data)) {
                     const valEl = document.getElementById(`val_${sensorName}`);
                     if (valEl) {
-                        // If this is the CPU core usage sensor, display the usage_percent value with a '%' sign
-                        if (sensorName === 'cpu_core' && sensorData.usage_percent !== undefined) {
-                            valEl.textContent = sensorData.usage_percent.toFixed(1) + '%';
+                        // Get the formatting configuration for this sensor, if it exists
+                        const format = APP_CONFIG.SENSOR_FORMATS[sensorName] || {};
+
+                        let rawValue;
+                        if (format.data && sensorData[format.data] !== undefined) {
+                            rawValue = sensorData[format.data];
                         } else {
-                            // For any other sensor, just show the value
-                            const firstVal = Object.values(sensorData)[0];
-                            valEl.textContent = typeof firstVal === 'number' ? firstVal.toFixed(1) : firstVal;
+                            rawValue = Object.values(sensorData)[0];
+                        }
+                        if (typeof rawValue === 'number') {
+                            const decimals = format.decimals !== undefined ? format.decimals : 1;
+                            const suffix = format.suffix || "";
+                            valEl.textContent = rawValue.toFixed(decimals) + suffix;
+                        } else {
+                            valEl.textContent = rawValue;
                         }
                     }
                 }

@@ -17,6 +17,7 @@ async def process_video(track, ws):
         try:
             steer_value = 0.0
             throttle_value = 0.0
+
             # Grab frame from the incoming WebRTC stream
             frame = await track.recv()
             img = frame.to_ndarray(format="bgr24")
@@ -67,7 +68,6 @@ async def process_video(track, ws):
                         error = (target_x - car_center_x) / car_center_x
                         steer_value = error * 2.0
 
-                        # Clamp the value (-1,1)
                         steer_value = max(-1.0, min(1.0, steer_value))
 
                         # Sharp turn -> slower speed
@@ -86,7 +86,6 @@ async def process_video(track, ws):
                         cv2.drawContours(img, [largest_contour], -1, (0, 255, 255), 2)
 
             # Send the control command to the server
-
             command = {
                 "type": "control",
                 "steer": steer_value,
@@ -116,9 +115,9 @@ async def main():
 
     async with websockets.connect(BACKEND_URL) as ws:
         print("[CLIENT] Successfully connected to server")
+
         # Identify as a client to the backend
         await ws.send(json.dumps({"role": "client"}))
-
         pc = RTCPeerConnection()
 
         # When the Pi sends us video tracks, start processing them
@@ -140,6 +139,7 @@ async def main():
                     }
                 }))
         pc.addTransceiver("video", direction="recvonly")
+        
         # Create the WebRTC offer and send it to the car
         offer = await pc.createOffer()
         await pc.setLocalDescription(offer)

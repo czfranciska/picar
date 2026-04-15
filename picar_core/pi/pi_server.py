@@ -10,24 +10,25 @@ from picar_core.pi.hardware import ServoHatDriver, OutputDriver
 from picar_core.pi.webrtc import WebRTCServerAV
 from picar_core.pi.sensor import CPUSensor
 
+# Stops the car (set throttle to neutral) if no control message is received for more than failsafe_s seconds.
 async def failsafe_task(driver: OutputDriver, last_rx_ref: list, failsafe_s: float, poll_interval: float):
-    # Stops the car (set throttle to neutral) if no control message is received for more than failsafe_s seconds.
     while True:
         await asyncio.sleep(poll_interval)
         if time.time() - last_rx_ref[0] > failsafe_s:
             driver.neutral()
 
+# Periodically reads requested sensors and sends the data to the pc server
 async def sensor_task(ws, sensors: list, active_subs: dict, interval_s: float = 1.0):
-    # Periodically reads requested sensors and sends the data to the pc server
     while True:
         payload = {
             "type": "sensor",
             "data": {}
         }
+        # Only read and send data for sensors that are currently requested
         for sensor in sensors:
             if sensor.name in active_subs.get("requested_sensors", set()):
                 payload["data"][sensor.name] = sensor.read()
-
+        # Only send if there's data to send
         if payload["data"]:
             try:
                 await ws.send(json.dumps(payload))
@@ -88,9 +89,10 @@ async def main(config_path="picar_core/pi/pi_config.json", active_sensors=None):
                 # Identify as the car to the backend
                 await ws.send(json.dumps({"role": "car"}))
                 print(f"[PICAR] Connected to backend at {backend_url}")
+
                 # Start the sensor task to periodically send sensor data
                 asyncio.create_task(sensor_task(ws, active_sensors, active_subs, interval_s=poll_rate))
-                # Initialize the WebRTC server
+
                 rtc = WebRTCServerAV(
                     camera_conf.get("device", "/dev/video0"),
                     camera_conf.get("width", 320),
@@ -99,6 +101,7 @@ async def main(config_path="picar_core/pi/pi_config.json", active_sensors=None):
                     camera_conf.get("format", "yuyv422"),
                     camera_conf.get("stun", "stun:stun.l.google.com:19302")
                 )
+
                 # Main loop to receive messages
                 async for msg in ws:
                     try:
@@ -107,6 +110,7 @@ async def main(config_path="picar_core/pi/pi_config.json", active_sensors=None):
                         continue
 
                     mtype = obj.get("type")
+
                     # Handle control commands
                     if mtype == "control":
                         last_rx_ref[0] = time.time()
@@ -118,8 +122,10 @@ async def main(config_path="picar_core/pi/pi_config.json", active_sensors=None):
 
                         driver.set_steer_throttle(steer, throttle)
                         print(f"[CONTROL] Received - Steer: {steer:.3f}, Throttle: {throttle:.3f}")
+
                     # Handle requests for available sensors
                     elif mtype == "get_sensor_list":
+
                         # Create a list of names from the active_sensors list
                         available = [s.name for s in active_sensors]
                         await ws.send(json.dumps({
@@ -130,9 +136,11 @@ async def main(config_path="picar_core/pi/pi_config.json", active_sensors=None):
                         requested = obj.get("sensors", [])
                         active_subs["requested_sensors"] = set(requested)
                         print(f"[PICAR] Client requested sensors: {active_subs['requested_sensors']}")
+
                     # Handle WebRTC offers
                     elif mtype == "webrtc_offer":
                         asyncio.create_task(rtc.handle_offer(ws, obj))
+
                     # Handle incoming ICE candidates
                     elif mtype == "webrtc_ice":
                         await rtc.handle_ice(obj)

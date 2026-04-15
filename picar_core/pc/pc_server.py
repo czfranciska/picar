@@ -35,6 +35,7 @@ async def handler(websocket):
                 try:
                     msg_obj = json.loads(message)
                     if msg_obj.get("type") == "sensor":
+
                         # Selective forwarding, only send data to clients that subscribed to this sensor
                         for sensor_name, sensor_data in msg_obj.get("data", {}).items():
                             subscribers = subscriptions.get(sensor_name, [])
@@ -42,6 +43,7 @@ async def handler(websocket):
                                 payload = json.dumps({"type": "sensor", "data": {sensor_name: sensor_data}})
                                 websockets.broadcast(subscribers, payload)
                     else:
+
                         # Broadcast other types (like WebRTC signals) to all clients
                         websockets.broadcast(client_connections, message)
                 except Exception:
@@ -59,12 +61,15 @@ async def handler(websocket):
                     msg_obj = json.loads(message)
                     if msg_obj.get("type") == "subscribe_sensors":
                         requested = msg_obj.get("sensors", [])
+
                         # Clean up subscriptions for this client
                         for s_set in subscriptions.values():
                             s_set.discard(websocket)
+
                         # Update subscriptions
                         for s_name in requested:
                             subscriptions[s_name].add(websocket)
+
                         # Remove any sensors from the keyset that have no subscribers
                         for s_name in list(subscriptions.keys()):
                             if not subscriptions[s_name]:
@@ -77,9 +82,15 @@ async def handler(websocket):
                     continue
         finally:
             client_connections.remove(websocket)
+
             # When a client disconnects, clear its subscriptions
             for s_set in subscriptions.values():
                 s_set.discard(websocket)
+
+            for s_name in list(subscriptions.keys()):
+                if not subscriptions[s_name]:
+                    del subscriptions[s_name]
+
             await update_car_subscriptions()
             print("[BACKEND] Client disconnected.")
 

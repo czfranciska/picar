@@ -12,7 +12,7 @@
 <div class="wrap">
     <h1>RC Car — WebRTC + Keyboard</h1>
     <div class="row">
-        <input id="wsurl" type="text" value="ws://mono.inf.elte.hu:3333"/>
+        <input id="wsurl" type="text"/>
         <button id="connect" class="primary">Connect</button>
         <button id="disconnect" class="secondary">Disconnect</button>
         <span class="status"><span id="dot" class="dot"></span><span id="stat">disconnected</span></span>
@@ -44,9 +44,9 @@
     </div>
 
     <div class="row" style="margin-top:10px;">
-        <span class="tiny">Step (steer)</span><input class="num" id="stepS" value="0.06"/>
-        <span class="tiny">Step (throttle)</span><input class="num" id="stepT" value="0.06"/>
-        <span class="tiny">Decay</span><input class="num" id="decay" value="0.00"/>
+        <span class="tiny">Step (steer)</span><input class="num" id="stepS"/>
+        <span class="tiny">Step (throttle)</span><input class="num" id="stepT"/>
+        <span class="tiny">Decay</span><input class="num" id="decay"/>
         <span class="tiny" style="margin-left:auto;">Rate: <span id="rate">0</span> Hz</span>
     </div>
 
@@ -55,6 +55,7 @@
     </div>
 </div>
 
+<script src="config.js"></script>
 <script src="client.js"></script>
 
 </body>
