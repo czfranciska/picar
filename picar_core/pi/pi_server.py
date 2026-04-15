@@ -82,6 +82,9 @@ async def main(config_path="picar_core/pi/pi_config.json", active_sensors=None):
         sensor.setup()
     active_subs = {"requested_sensors": set()}
 
+    last_steer = None
+    last_throttle = None
+
     while True:
         try:
             # Connect to the backend WebSocket server
@@ -121,7 +124,10 @@ async def main(config_path="picar_core/pi/pi_config.json", active_sensors=None):
                         if abs(throttle) < throttle_dz: throttle = 0.0
 
                         driver.set_steer_throttle(steer, throttle)
-                        print(f"[CONTROL] Received - Steer: {steer:.3f}, Throttle: {throttle:.3f}")
+                        if steer != last_steer or throttle != last_throttle:
+                            print(f"[CONTROL] Received - Steer: {steer:.3f}, Throttle: {throttle:.3f}")
+                            last_steer = steer
+                            last_throttle = throttle
 
                     # Handle requests for available sensors
                     elif mtype == "get_sensor_list":
@@ -135,7 +141,11 @@ async def main(config_path="picar_core/pi/pi_config.json", active_sensors=None):
                     elif mtype == "subscribe_sensors":
                         requested = obj.get("sensors", [])
                         active_subs["requested_sensors"] = set(requested)
-                        print(f"[PICAR] Client requested sensors: {active_subs['requested_sensors']}")
+
+                        if requested:
+                            print(f"[PICAR] Client requested sensors: {active_subs['requested_sensors']}")
+                        else:
+                            print("[PICAR] No requested sensors.")
 
                     # Handle WebRTC offers
                     elif mtype == "webrtc_offer":
