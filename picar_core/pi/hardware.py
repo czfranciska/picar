@@ -24,8 +24,6 @@ class PCA9685:
         self.address = address
         self.debug = debug
         self.pwrange = {}
-        if (self.debug):
-            print("Reseting PCA9685")
         self.write(self.__MODE1, 0x00)
 
     def write(self, reg, value):

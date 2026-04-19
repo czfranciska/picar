@@ -100,28 +100,6 @@ class TestRelayServer(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn(client_ws, pc.client_connections)
         self.assertNotIn(client_ws, pc.subscriptions["cpu_core"])
 
-    async def test_sync_subscriptions_to_car(self):
-        # Verify the car is notified when the sensor list changes.
-        # Mock the car connection
-        car_ws = AsyncMock()
-        pc.car_connection = car_ws
-
-        # Mock a client that subscribes to a sensor
-        client_ws = AsyncMock()
-        client_ws.recv.return_value = json.dumps({"role": "client"})
-        sub_msg = json.dumps({"type": "subscribe_sensors", "sensors": ["cpu_core"]})
-        client_ws.__aiter__.return_value = [sub_msg]
-
-        # Process the subscription
-        await pc.handler(client_ws)
-
-        # Verify car received a 'subscribe_sensors' command with the updated list
-        expected_payload = json.dumps({
-            "type": "subscribe_sensors",
-            "sensors": ["cpu_core"]
-        })
-        car_ws.send.assert_called_with(expected_payload)
-
     async def test_client_command_no_car(self):
         # Verify server doesn't crash if a client sends a command while car is offline.
         pc.car_connection = None

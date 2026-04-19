@@ -23,11 +23,12 @@ async def process_video(track, ws):
             img = frame.to_ndarray(format="bgr24")
             height, width, _ = img.shape
 
-            # Convert to grayscale, use Gaussian blur, and threshold to find the white line
+            # Convert to grayscale, use Gaussian blur, and threshold to find the line
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             blur = cv2.GaussianBlur(gray, (5, 5), 0)
             ret, thresh = cv2.threshold(blur, 60, 255, cv2.THRESH_BINARY_INV)
 
+            # Ignore the upper part of the frame to focus on the area near the car
             area_top = int(height * 0.35)
             thresh[0:area_top, 0:width] = 0
 
