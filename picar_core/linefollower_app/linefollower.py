@@ -39,9 +39,6 @@ async def process_video(track, ws):
             frame_count += 1
             contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            steer_value = 0.0
-            frame_count += 1
-
             if len(contours) > 0:
                 # Find the largest contour
                 largest_contour = max(contours, key=cv2.contourArea)
@@ -73,12 +70,12 @@ async def process_video(track, ws):
 
                         # Sharp turn -> slower speed
                         if abs(steer_value) > 0.6:
-                            if frame_count % 10 < 5:
+                            if frame_count % 5 < 3:
                                 throttle_value = 1.0
                             else:
                                 throttle_value = 0.0
                         else:
-                            if frame_count % 10 < 8:
+                            if frame_count % 5 < 4:
                                 throttle_value = 1.0
                             else:
                                 throttle_value = 0.0
