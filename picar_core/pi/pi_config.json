@@ -15,7 +15,7 @@
     "steer_range_us": 300,
     "esc_neutral_us": 1500,
     "esc_min_us": 1350,
-    "esc_max_us": 1600,
+    "esc_max_us": 1580,
     "dry_run": false,
     "i2c_address": 64,
     "frequency_hz": 50,

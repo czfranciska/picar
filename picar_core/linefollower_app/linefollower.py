@@ -12,6 +12,7 @@ BACKEND_URL = "ws://mono.inf.elte.hu:3333"
 async def process_video(track, ws):
     print("[Line Follower] Video processing started.")
     cv2.namedWindow("Line follower view", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Line follower view", 1280, 720)
     frame_count = 0
     while True:
         try:
