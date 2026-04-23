@@ -12,8 +12,7 @@
         tfill = document.getElementById('tfill'),
         tval = document.getElementById('tval');
     const stepS = document.getElementById('stepS'),
-        stepT = document.getElementById('stepT'),
-        decayIn = document.getElementById('decay');
+        stepT = document.getElementById('stepT');
     const rateEl = document.getElementById('rate');
     const sensorContainer = document.getElementById('sensor_container');
 
@@ -21,7 +20,6 @@
 
     if (stepS) stepS.value = APP_CONFIG.DEFAULT_STEER_STEP;
     if (stepT) stepT.value = APP_CONFIG.DEFAULT_THROTTLE_STEP;
-    if (decayIn) decayIn.value = APP_CONFIG.DEFAULT_DECAY;
 
     let ws = null,
         pc = null;
@@ -221,18 +219,28 @@
     connectBtn.onclick = connect;
     disconnectBtn.onclick = disconnect;
 
+        function inputCheck(inputEl, min, max, fallback) {
+        inputEl.addEventListener('change', () => {
+            const val = parseFloat(inputEl.value);
+            if (isNaN(val) || val < min || val > max) {
+                inputEl.value = fallback.toFixed(2);
+            }
+        });
+    }
+
+    inputCheck(stepS, 0.01, 0.5, APP_CONFIG.DEFAULT_STEER_STEP);
+    inputCheck(stepT, 0.01, 0.5, APP_CONFIG.DEFAULT_THROTTLE_STEP);
+
     // Handle keyboard input for controlling the car
     const keys = new Set();
     window.addEventListener('keydown', (e) => {
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
         if (e.repeat) return;
         keys.add(e.key);
-        if (e.key.toLowerCase() === 'c') steer = 0.0;
         if (e.key.toLowerCase() === 'x') {
             steer = 0.0;
             throttle = 0.0;
         }
-        if (e.key === ' ') throttle = 0.0;
         if (e.key.toLowerCase() === 'q') disconnect();
     });
     window.addEventListener('keyup', (e) => {
@@ -242,8 +250,6 @@
     function tick(ts) {
         const sStep = parseFloat(stepS.value || '0.06'); // how fast to re-center steering
         const tStep = parseFloat(stepT.value || '0.06'); // how fast to return throttle to neutral
-        const decay = clamp(parseFloat(decayIn.value || '0.00'), 0, 1); // optional extra smoothing
-
         const steerLeft = keys.has('ArrowLeft') || keys.has('a') || keys.has('A');
         const steerRight = keys.has('ArrowRight') || keys.has('d') || keys.has('D');
         const throttleUp = keys.has('ArrowUp') || keys.has('w') || keys.has('W');
@@ -265,12 +271,6 @@
         if (!throttleUp && !throttleDn) {
             if (Math.abs(throttle) <= tStep) throttle = 0;
             else throttle += (throttle > 0 ? -tStep : tStep);
-        }
-
-        // Apply optional decay for extra smoothing
-        if (decay > 0) {
-            steer *= (1 - decay);
-            throttle *= (1 - decay);
         }
 
         // Clamp values to [-1, 1] and update the UI

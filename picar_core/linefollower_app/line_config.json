@@ -20,7 +20,7 @@
     "sharp_turn_threshold": 0.6,
     "throttle_high": 1.0,
     "throttle_low": 0.0,
-    "duty_cycle_sharp": 6,
-    "duty_cycle_straight": 8
+    "duty_cycle_sharp": 4,
+    "duty_cycle_straight": 6
   }
 }
