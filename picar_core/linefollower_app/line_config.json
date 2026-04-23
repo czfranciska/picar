@@ -1,0 +1,26 @@
+{
+  "backend_url": "ws://mono.inf.elte.hu:3333",
+  "pid": {
+    "kp": 6.0,
+    "ki": 0.0,
+    "kd": 1.0,
+    "integral_limit": 10.0
+  },
+  "vision": {
+    "window_width": 1280,
+    "window_height": 720,
+    "look_ahead_percent": 0.65,
+    "blur_kernel": 5,
+    "threshold_min": 60,
+    "threshold_max": 255,
+    "crop_top_percent": 0.35,
+    "min_contour_area": 500
+  },
+  "control": {
+    "sharp_turn_threshold": 0.6,
+    "throttle_high": 1.0,
+    "throttle_low": 0.0,
+    "duty_cycle_sharp": 6,
+    "duty_cycle_straight": 8
+  }
+}
