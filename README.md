@@ -10,6 +10,10 @@ This project features a control platform and a simple line-follower application.
 
 Technically all three components can be run on the same machine, but for the sake of demonstration and to simulate a real-world scenario, it is recommended to run them on separate devices.
 
+<div style="text-align: center; margin-top: 20px;">
+  <img src="images/IMG_20260428_151940735.jpg" alt="Photo of the RC car" width="400"/>
+</div>
+
 ## Installation
 Before proceeding, ensure that Python 3.10 or a later version is installed on all participating nodes. Install the project and the dependencies listed in pyproject.toml on all the machines by running the following command:
 
